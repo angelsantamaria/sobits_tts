@@ -50,7 +50,9 @@ def generate_launch_description():
                 'piper.volume': LaunchConfiguration('piper_volume'),
                 'piper.speaker_id': LaunchConfiguration('piper_speaker_id'),
             }
-        ]
+        ],
+        remappings=[
+            ('/speech_word','/b2/speech_word')]
     )
 
     return LaunchDescription([
