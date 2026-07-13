@@ -52,8 +52,13 @@ def generate_launch_description():
             }
         ],
         remappings=[
-            ('/speech_word','/b2/speech_word')]
-    )
+                ('speech_word/_action/feedback', 'b2/speech_word/_action/feedback'),
+                ('speech_word/_action/status', 'b2/speech_word/_action/status'),
+                ('speech_word/_action/get_result', 'b2/speech_word/_action/get_result'),
+                ('speech_word/_action/send_goal', 'b2/speech_word/_action/send_goal'),
+                ('speech_word/_action/cancel_goal', 'b2/speech_word/_action/cancel_goal'),
+            ]
+        )
 
     return LaunchDescription([
         piper_model_arg,
