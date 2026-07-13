@@ -1,35 +1,15 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 echo "========================================"
-echo " Installing Piper TTS"
+echo " Preparing Piper TTS runtime"
 echo "========================================"
 
-echo "[1/3] Installing piper..."
-pip3 install --upgrade piper-tts onnxruntime --break-system-packages
-MODEL_DIR="$HOME/.sobits_tts/piper"
-mkdir -p "$MODEL_DIR"
-
-
-echo "[2/3] Model directory: $MODEL_DIR"
-MODELS=(
-    "en_US-lessac-medium"
-    "en_US-amy-medium"
-)
-
-
-echo "[3/3] Installing default models..."
-for MODEL in "${MODELS[@]}"; do
-    if [ -f "$MODEL_DIR/$MODEL.onnx" ]; then
-        echo "  - $MODEL already exists. Skipping."
-    else
-        echo "  - Downloading $MODEL ..."
-        python3 -m piper.download_voices "$MODEL" --download-dir "$MODEL_DIR"
-        echo "    Done."
-    fi
-done
+python3 "${script_dir}/scripts/prepare_sobits_tts.py"
 
 echo "========================================"
-echo " Piper installation completed."
+echo " Piper TTS runtime ready"
 echo "========================================"

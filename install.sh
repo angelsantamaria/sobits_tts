@@ -1,29 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-echo "╔══╣ Install: SOBITS TTS (STARTING) ╠══╗"
+set -euo pipefail
 
-sudo apt update -y
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-sudo apt install pulseaudio pulseaudio-utils -y
+echo "========================================"
+echo " Installing SoBiTS TTS runtime"
+echo "========================================"
 
-sudo apt install -y ros-${ROS_DISTRO}-vision-msgs
-
-# Install "sobits_interfaces"
-cd ../
-if [ ! -d "sobits_interfaces" ]; then
-    git clone -b ${ROS_DISTRO}-devel https://github.com/TeamSOBITS/sobits_interfaces.git
-    cd sobits_interfaces/
-    bash install.sh
-    cd ..
-else
-    echo "sobits_interfaces リポジトリはすでに存在します。スキップします。"
+if command -v apt-get >/dev/null 2>&1; then
+  apt_cmd=(apt-get)
+  if [ "$(id -u)" -ne 0 ]; then
+    apt_cmd=(sudo apt-get)
+  fi
+  "${apt_cmd[@]}" update -y
+  "${apt_cmd[@]}" install -y \
+    pulseaudio \
+    pulseaudio-utils \
+    python3-pip \
+    "ros-${ROS_DISTRO:-jazzy}-vision-msgs"
 fi
 
-pip3 install soundfile --break-system-packages
+SOBITS_TTS_DOWNLOAD_MODELS=0 python3 "${script_dir}/scripts/prepare_sobits_tts.py"
 
-pip3 install pygame --break-system-packages
-
-# For playback_speed: PyAV (in-process libavfilter atempo filter)
-pip3 install av --break-system-packages
-
-echo "╚══╣ Install: SOBITS TTS (FINISHED) ╠══╝"
+echo "========================================"
+echo " SoBiTS TTS runtime installation complete"
+echo "========================================"
