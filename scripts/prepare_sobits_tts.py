@@ -3,6 +3,7 @@
 import importlib.util
 import os
 from pathlib import Path
+import site
 import shutil
 import subprocess
 import sys
@@ -60,17 +61,35 @@ def ensure_pip():
     run(installer + ["install", "-y", "python3-pip"])
 
 
+def user_site_visible():
+    return bool(getattr(site, "ENABLE_USER_SITE", False))
+
+
 def pip_install(packages):
     if have_modules():
         return
 
     ensure_pip()
-    base_command = [sys.executable, "-m", "pip", "install", "--user", "--upgrade"] + packages
-    result = subprocess.run(base_command, check=False)
-    if result.returncode == 0:
-        return
+    commands = []
 
-    run(base_command[:5] + ["--break-system-packages"] + base_command[5:])
+    if user_site_visible():
+        commands.append([sys.executable, "-m", "pip", "install", "--user", "--upgrade"] + packages)
+
+    commands.append([
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--break-system-packages",
+        "--upgrade",
+    ] + packages)
+
+    for command in commands:
+        result = subprocess.run(command, check=False)
+        if result.returncode == 0:
+            return
+
+    run(commands[-1])
 
 
 def requested_models():
