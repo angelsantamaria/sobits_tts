@@ -58,13 +58,23 @@ class TTSActionServer(Node):
             self.get_logger().fatal(traceback.format_exc())
             raise RuntimeError(f"Failed to load or initialize TTS '{self.tts_name}'.")
 
-        try:
-            pygame.mixer.init(frequency=self.sample_rate, size=-16, channels=1, buffer=512)
+        # Keep the speech endpoints unavailable until SDL has opened playback.
+        while rclpy.ok():
+            try:
+                pygame.mixer.init(frequency=self.sample_rate, size=-16, channels=1, buffer=512)
+            except pygame.error as error:
+                self.get_logger().warn(
+                    f"Failed to initialize Pygame mixer: {error}. Retrying in 5 seconds."
+                )
+                time.sleep(5)
+                continue
+
             self.get_logger().info("Pygame mixer initialized.")
             self._mixer_initialized = True
-        except Exception as e:
-            self.get_logger().error(f"Failed to initialize Pygame mixer: {e}. Audio playback may not work.")
-            self._mixer_initialized = False
+            break
+        else:
+            self.destroy_node()
+            raise KeyboardInterrupt
 
         self._action_server = ActionServer(
             self,
